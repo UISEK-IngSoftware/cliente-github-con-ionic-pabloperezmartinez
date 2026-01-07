@@ -1,8 +1,31 @@
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/react';
+import { useState } from 'react';
+import { IonButton, IonContent, IonHeader, IonIcon, IonPage, IonTitle, IonToolbar, useIonViewDidEnter } from '@ionic/react';
 import { IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle } from '@ionic/react';
+import { UserInfo } from '../interfaces/UserInfo';
+import { getUserInfo } from '../services/GithubService';
+import { logOutOutline } from 'ionicons/icons';
+import AuthService from '../services/AuthService';
+import { useHistory } from 'react-router';
 import './Tab3.css';
 
 const Tab3: React.FC = () => {
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const history = useHistory();
+
+  const loadUserInfo = async () => {
+    const info = await getUserInfo();
+    setUserInfo(info);
+  };
+
+  useIonViewDidEnter(() => {
+    loadUserInfo();
+  });
+
+  const handleLogout = () => {
+    AuthService.logout();
+    history.replace('/login');
+  }
+
   return (
     <IonPage>
       <IonHeader>
@@ -17,17 +40,26 @@ const Tab3: React.FC = () => {
           </IonToolbar>
         </IonHeader>
         <IonCard>
-          <img alt="Silhouette of mountains" 
-          src="https://img.a.transfermarkt.technology/portrait/big/55884-1635921417.JPG?lm=1" />
+          <img alt={userInfo?.name}
+          src={userInfo?.avatar_url} />
           <IonCardHeader>
-            <IonCardTitle>Pablo Pérez Martínez</IonCardTitle>
-            <IonCardSubtitle>pabloperezmartinez</IonCardSubtitle>
+            <IonCardTitle>{userInfo?.name}</IonCardTitle>
+            <IonCardSubtitle>{userInfo?.login}</IonCardSubtitle>
           </IonCardHeader>
-
           <IonCardContent>
-            Soy un desarrollador de software apasionado por las tecnologías móviles y web. Me encanta crear aplicaciones que brinden experiencias excepcionales a los usuarios.
+            {userInfo?.bio}
           </IonCardContent>
         </IonCard>
+
+        <IonButton
+          expand="block"
+          color="danger"
+          onClick={handleLogout}
+          >
+            <IonIcon slot="start" icon={logOutOutline} />
+            Cerrar sesión
+        </IonButton>
+
       </IonContent>
     </IonPage>
   );
